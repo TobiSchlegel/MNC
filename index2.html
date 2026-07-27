@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="My Nutrition">
+    <title>My Nutrition Concept</title>
+    <style>
+        :root {
+            --kids-bg: #FFF9E6;
+            --kids-primary: #FF6B6B;
+            --kids-accent: #4D96FF;
+            --kids-card: #FFFFFF;
+            --kids-text: #2C3E50;
+            
+            --adults-bg: #121824;
+            --adults-primary: #2ECC71;
+            --adults-accent: #34495E;
+            --adults-card: #1F2A38;
+            --adults-text: #F5F6FA;
+            --adults-muted: #95A5A6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            transition: background-color 0.3s, color 0.3s;
+            padding-bottom: 120px;
+        }
+
+        body.mode-kids {
+            background-color: var(--kids-bg);
+            color: var(--kids-text);
+        }
+        body.mode-adults {
+            background-color: var(--adults-bg);
+            color: var(--adults-text);
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: background 0.3s;
+        }
+        body.mode-kids header { background: #FFD93D; color: #2C3E50; }
+        body.mode-adults header { background: #1A252F; color: #FFFFFF; border-bottom: 1px solid #2C3E50; }
+
+        h1 { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+        .subtitle { font-size: 13px; opacity: 0.8; font-weight: 500; }
+
+        .tab-navigation {
+            display: flex;
+            margin: 15px auto 5px auto;
+            max-width: 400px;
+            background: rgba(0,0,0,0.06);
+            padding: 4px;
+            border-radius: 25px;
+        }
+        body.mode-adults .tab-navigation { background: rgba(255,255,255,0.08); }
+
+        .tab-btn {
+            flex: 1;
+            border: none;
+            padding: 10px;
+            border-radius: 21px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        body.mode-kids .tab-btn.active { background: #FFFFFF; color: var(--kids-primary); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        body.mode-kids .tab-btn:not(.active) { color: #576574; }
+        
+        body.mode-adults .tab-btn.active { background: var(--adults-primary); color: #121824; }
+        body.mode-adults .tab-btn:not(.active) { color: var(--adults-muted); }
+
+        .search-container {
+            max-width: 500px;
+            margin: 15px auto 0 auto;
+            padding: 0 10px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        body.mode-kids .search-input { background: #FFFFFF; color: #2C3E50; }
+        body.mode-adults .search-input { background: #2C3E50; color: #FFFFFF; }
+
+        .main-container {
+            max-width: 600px;
+            margin: 15px auto;
+            padding: 0 15px;
+        }
+
+        .accordion-item {
+            border-radius: 16px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .accordion-header {
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        
+        .accordion-content {
+            display: none;
+            padding: 12px 12px 4px 12px;
+        }
+        
+        body.mode-kids .accordion-content { background-color: rgba(255, 255, 255, 0.4); }
+        body.mode-adults .accordion-content { background-color: rgba(0, 0, 0, 0.15); }
+
+        .accordion-item.open .accordion-content {
+            display: block;
+        }
+
+        .menu-item {
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #FFFFFF;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        body.mode-adults .menu-item {
+            background: #2C3E50;
+        }
+
+        .item-info h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .item-info p {
+            font-size: 12px;
+        }
+        body.mode-kids .item-info p { color: #7f8c8d; }
+        body.mode-adults .item-info p { color: var(--adults-muted); }
+
+        .counter-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .val-display {
+            font-size: 16px;
+            font-weight: 700;
+            min-width: 35px;
+            text-align: center;
+        }
+        .val-display.has-value {
+            color: #FF6B6B;
+        }
+        body.mode-adults .val-display.has-value {
+            color: var(--adults-primary);
+        }
+
+        .btn-calc {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.mode-kids .btn-plus { background: #6BCB77; color: white; }
+        body.mode-kids .btn-minus { background: #FF6B6B; color: white; }
+        
+        body.mode-adults .btn-plus { background: var(--adults-primary); color: #121824; }
+        body.mode-adults .btn-minus { background: #E74C3C; color: white; }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.08);
+            gap: 10px;
+        }
+        body.mode-kids .bottom-bar { background: #FFFFFF; border-top: 2px solid #FFD93D; }
+        body.mode-adults .bottom-bar { background: #1A252F; border-top: 1px solid #2C3E50; }
+
+        .total-box {
+            flex: 1;
+        }
+        .total-box h4 {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        body.mode-kids .total-box h4 { color: #7f8c8d; }
+        body.mode-adults .total-box h4 { color: var(--adults-muted); }
+
+        .total-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        body.mode-kids .total-value { color: #2C3E50; }
+        body.mode-adults .total-value { color: #FFFFFF; }
+
+        .remaining-box {
+            flex: 1;
+            text-align: center;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .remaining-box h4 {
+            font-size: 10px;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        body.mode-kids .remaining-box h4 { color: #7f8c8d; }
+        body.mode-adults .remaining-box h4 { color: var(--adults-muted); }
+        
+        .remaining-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #2ECC71;
+        }
+        .remaining-value.danger {
+            color: #E74C3C !important;
+        }
+
+        .btn-reset {
+            padding: 10px 16px;
+            border-radius: 20px;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        body.mode-kids .btn-reset { background: #4D96FF; color: white; }
+        body.mode-adults .btn-reset { background: #34495E; color: white; }
+        
+        .arrow-icon {
+            font-size: 14px;
+            min-width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+        .arrow-icon::after {
+            content: ' ▼';
+        }
+        .accordion-item.open .arrow-icon::after {
+            content: ' ▲';
+        }
+    </style>
+</head>
+<body class="mode-kids">
+
+    <header>
+        <h1 id="mainTitle">My Nutrition Concept</h1>
+        <div class="subtitle" id="subTitle">Healthy Food & Snacks für Kids 🍉</div>
+        
+        <div class="tab-navigation">
+            <button class="tab-btn active" id="tabKids" onclick="setMode('kids')">Kids 👧👦</button>
+            <button class="tab-btn" id="tabAdults" onclick="setMode('adults')">Adults 🥑🏋️</button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchBar" class="search-input" placeholder="Nach Lebensmitteln suchen..." oninput="renderItems()">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div id="itemsContainer"></div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="total-box">
+            <h4>Gesamt</h4>
+            <div class="total-value" id="totalKcal">0 kcal</div>
+        </div>
+        
+        <div class="remaining-box">
+            <h4>Restwert</h4>
+            <div class="remaining-value" id="remainingKcal">1800 kcal</div>
+        </div>
+        
+        <button class="btn-reset" onclick="resetAll()">Reset 🔄</button>
+    </div>
+
+    <script>
+        const kidsData = [{"name": "Scheibe Eiweisbrot", "kcal": 120.0, "orig_idx": 0}, {"name": "Toastbrot Scheibe kl", "kcal": 67.0, "orig_idx": 1}, {"name": "Toast Scheibe gr", "kcal": 100.0, "orig_idx": 2}, {"name": "Scheibe Brot", "kcal": 135.0, "orig_idx": 3}, {"name": "Dinkelbursche Scheibe", "kcal": 118.0, "orig_idx": 4}, {"name": "Zucker Stick 5g", "kcal": 20.0, "orig_idx": 5}, {"name": "Butter 5 g", "kcal": 36.0, "orig_idx": 6}, {"name": "Frischkäse Balance 5g", "kcal": 10.0, "orig_idx": 7}, {"name": "Margarine 5g", "kcal": 17.5, "orig_idx": 8}, {"name": "Knorr TexMex 15 ml", "kcal": 10.0, "orig_idx": 9}, {"name": "Meerrettich 10g", "kcal": 16.0, "orig_idx": 10}, {"name": "Magerquark 10g", "kcal": 7.0, "orig_idx": 11}, {"name": "Scheibe Käse", "kcal": 125.0, "orig_idx": 12}, {"name": "Skyr 100g", "kcal": 62.0, "orig_idx": 13}, {"name": "Fettarm -30% Käse Schb.", "kcal": 93.0, "orig_idx": 14}, {"name": "Burlander Milram", "kcal": 87.0, "orig_idx": 15}, {"name": "Ein Ei", "kcal": 90.0, "orig_idx": 16}, {"name": "Joghurt 1,5% 250g", "kcal": 153.0, "orig_idx": 17}, {"name": "Tomate", "kcal": 22.0, "orig_idx": 18}, {"name": "Paprika mittel", "kcal": 30.0, "orig_idx": 19}, {"name": "Salatgurke 1", "kcal": 50.0, "orig_idx": 20}, {"name": "Möhre", "kcal": 31.0, "orig_idx": 21}, {"name": "Apfel mittel-groß", "kcal": 80.0, "orig_idx": 22}, {"name": "Birne mittel-große", "kcal": 59.0, "orig_idx": 23}, {"name": "Kiwibeeren 100g", "kcal": 55.0, "orig_idx": 24}, {"name": "Mandarine", "kcal": 35.0, "orig_idx": 25}, {"name": "Orange", "kcal": 68.0, "orig_idx": 26}, {"name": "Süßkirsche 1 Stk", "kcal": 5.5, "orig_idx": 27}, {"name": "Zwetschge 1Stk.", "kcal": 14.0, "orig_idx": 28}, {"name": "Stachelbeeren 500g", "kcal": 200.0, "orig_idx": 29}, {"name": "Trauben 100g", "kcal": 70.0, "orig_idx": 30}, {"name": "Feige getrocknet 1 Stk", "kcal": 50.0, "orig_idx": 31}, {"name": "Kiwi Stk", "kcal": 49.0, "orig_idx": 32}, {"name": "Pfirsich", "kcal": 30.0, "orig_idx": 33}, {"name": "Banane", "kcal": 105.0, "orig_idx": 34}, {"name": "Müsli mit Banane", "kcal": 390.0, "orig_idx": 35}, {"name": "Müsli m. Banane u. Flakes", "kcal": 560.0, "orig_idx": 36}, {"name": "Toastfrühst. Pute&Honig", "kcal": 235.0, "orig_idx": 37}, {"name": "Brötchen Ei Frühstück", "kcal": 430.0, "orig_idx": 38}, {"name": "Scheibe Schinken", "kcal": 22.0, "orig_idx": 39}, {"name": "große Scheibe Schinken", "kcal": 32.0, "orig_idx": 40}, {"name": "Schinken in Aspik", "kcal": 16.0, "orig_idx": 41}, {"name": "Putenbrust Scheibe", "kcal": 21.0, "orig_idx": 42}, {"name": "Dulano Cabanossi", "kcal": 55.0, "orig_idx": 43}, {"name": "Schwazw. Schinken", "kcal": 22.0, "orig_idx": 44}, {"name": "Scheibe Wurst (5 kl. Gefl Salami)", "kcal": 50.0, "orig_idx": 45}, {"name": "Scheibe Lyoner", "kcal": 33.3, "orig_idx": 46}, {"name": "Wassereis", "kcal": 22.0, "orig_idx": 47}, {"name": "Capri", "kcal": 54.0, "orig_idx": 48}, {"name": "Split", "kcal": 96.0, "orig_idx": 49}, {"name": "Nuit Macadamia", "kcal": 245.0, "orig_idx": 50}, {"name": "NukkiNuss Xtreme", "kcal": 235.0, "orig_idx": 51}, {"name": "Snickers Eis weiß", "kcal": 213.0, "orig_idx": 52}, {"name": "Dracula Eis", "kcal": 62.0, "orig_idx": 53}, {"name": "Plombir Maxi", "kcal": 163.0, "orig_idx": 54}, {"name": "ProteinRiegel 45g", "kcal": 145.0, "orig_idx": 55}, {"name": "Schoko Chili  25g", "kcal": 138.0, "orig_idx": 56}, {"name": "Stück Toblerone", "kcal": 44.0, "orig_idx": 57}, {"name": "Rippchen Schokolade", "kcal": 91.0, "orig_idx": 58}, {"name": "Neo Giant Kekse", "kcal": 107.0, "orig_idx": 59}, {"name": "Zootiere 20g", "kcal": 84.0, "orig_idx": 60}, {"name": "Lindt Chili Stk", "kcal": 55.0, "orig_idx": 61}, {"name": "Lindor 37g", "kcal": 228.0, "orig_idx": 62}, {"name": "Merci", "kcal": 75.0, "orig_idx": 63}, {"name": "Snickers Proteine", "kcal": 192.0, "orig_idx": 64}, {"name": "Em eukal Vitamin Shot", "kcal": 11.0, "orig_idx": 65}, {"name": "Kräuterbonbon", "kcal": 8.0, "orig_idx": 66}, {"name": "Erdnüsse 100g", "kcal": 600.0, "orig_idx": 67}, {"name": "Erdnüsse Kl Schale", "kcal": 418.0, "orig_idx": 68}, {"name": "Erdnüsse 2 Kerne", "kcal": 12.0, "orig_idx": 69}, {"name": "Walnuss 1 Stk", "kcal": 35.0, "orig_idx": 70}, {"name": "Bierstängel 1Stk", "kcal": 52.0, "orig_idx": 71}, {"name": "Brezelstängel", "kcal": 56.0, "orig_idx": 72}, {"name": "Salzbrezeln 1/2 Tüte", "kcal": 496.25, "orig_idx": 73}, {"name": "Salzbrezeln 13St. 30g", "kcal": 119.1, "orig_idx": 74}, {"name": "Zwei Huober Brezeln", "kcal": 156.0, "orig_idx": 75}, {"name": "Prinzess Brezeln", "kcal": 40.0, "orig_idx": 76}, {"name": "Salzstangen je Stange", "kcal": 3.82, "orig_idx": 77}, {"name": "Traubenzucker Dextro", "kcal": 21.0, "orig_idx": 78}, {"name": "Trauben 166g", "kcal": 114.0, "orig_idx": 79}, {"name": "Erdbeerkuchen Stück", "kcal": 269.0, "orig_idx": 80}, {"name": "WW Muffins", "kcal": 200.0, "orig_idx": 81}, {"name": "Marmelade Teelöffel", "kcal": 31.0, "orig_idx": 82}, {"name": "Honig Teelöffel 7g", "kcal": 21.0, "orig_idx": 83}, {"name": "Tasse Tee", "kcal": 4.0, "orig_idx": 84}, {"name": "Nutella 15g", "kcal": 80.85, "orig_idx": 85}, {"name": "Brötchen 60g", "kcal": 165.0, "orig_idx": 86}, {"name": "Rosenbrötchen 70g", "kcal": 182.0, "orig_idx": 87}, {"name": "Hefezopf 100g (Stk. 70g)", "kcal": 339.0, "orig_idx": 88}, {"name": "Brezel 70g", "kcal": 266.0, "orig_idx": 89}, {"name": "Laugenstange", "kcal": 213.0, "orig_idx": 90}, {"name": "Sesamkringel", "kcal": 427.2, "orig_idx": 91}, {"name": "Butterbrezel", "kcal": 350.0, "orig_idx": 92}, {"name": "Geflügeloberländer", "kcal": 232.0, "orig_idx": 93}, {"name": "Rote Wurst", "kcal": 310.0, "orig_idx": 94}, {"name": "Lachs Steak 125g", "kcal": 283.0, "orig_idx": 95}, {"name": "Rindersteak 100g", "kcal": 225.0, "orig_idx": 96}, {"name": "Roulade", "kcal": 325.0, "orig_idx": 97}, {"name": "Steak 165g", "kcal": 389.0, "orig_idx": 98}, {"name": "Hähnchenspieß 1 Spieß", "kcal": 181.0, "orig_idx": 99}, {"name": "Hähnchenspieß klein", "kcal": 57.0, "orig_idx": 100}, {"name": "Putensteak100 g  unmari", "kcal": 110.0, "orig_idx": 101}, {"name": "Hähnchen Mini Steak", "kcal": 107.0, "orig_idx": 102}, {"name": "Hähnchen Steak Mariniert", "kcal": 271.0, "orig_idx": 103}, {"name": "Reis gekocht 250 ml", "kcal": 325.0, "orig_idx": 104}, {"name": "Gemüsepfanne 100 g", "kcal": 33.0, "orig_idx": 105}, {"name": "Hühnerbrühe 1 Teller", "kcal": 325.0, "orig_idx": 106}, {"name": "Kartoffel 100g", "kcal": 75.0, "orig_idx": 107}, {"name": "Reisgekocht 100g", "kcal": 125.0, "orig_idx": 108}, {"name": "Spargel 100g", "kcal": 16.0, "orig_idx": 109}, {"name": "Leberkäse 100g", "kcal": 280.0, "orig_idx": 110}, {"name": "Rosenkohl Stk", "kcal": 7.0, "orig_idx": 111}, {"name": "Zwiebelkuchen 100g", "kcal": 195.0, "orig_idx": 112}, {"name": "Gulasch 1 Teller", "kcal": 400.0, "orig_idx": 113}, {"name": "Chili Con Carne 1Teller", "kcal": 375.0, "orig_idx": 114}, {"name": "Spätzle 100g", "kcal": 145.0, "orig_idx": 115}, {"name": "Spinat Rahm 100 g", "kcal": 41.0, "orig_idx": 116}, {"name": "Knödl 1 Stk", "kcal": 160.0, "orig_idx": 117}, {"name": "Hähnchen, Kartoffel, Pilze", "kcal": 650.0, "orig_idx": 118}, {"name": "Scholle mit Kartoffeln", "kcal": 800.0, "orig_idx": 119}, {"name": "Pizza Diavolo 26 cm", "kcal": 840.0, "orig_idx": 120}, {"name": "Teller Kürbissuppe", "kcal": 200.0, "orig_idx": 121}, {"name": "Hackbraten 100g", "kcal": 225.0, "orig_idx": 122}, {"name": "Pommes 100g", "kcal": 320.0, "orig_idx": 123}, {"name": "Spätzle 100g", "kcal": 166.0, "orig_idx": 124}, {"name": "Tartar Hackbraten 100g", "kcal": 180.0, "orig_idx": 125}, {"name": "Putenfleisch 100g", "kcal": 105.0, "orig_idx": 126}, {"name": "Maultaschen Bürger 2x", "kcal": 252.0, "orig_idx": 127}, {"name": "CH Wurstsalat 200g", "kcal": 358.0, "orig_idx": 128}, {"name": "Cappuccino", "kcal": 150.0, "orig_idx": 129}, {"name": "Zucker 5g 1 TL", "kcal": 20.0, "orig_idx": 130}, {"name": "Eis eine Kugel", "kcal": 160.0, "orig_idx": 131}, {"name": "Fanta Zero 1l", "kcal": 30.0, "orig_idx": 132}, {"name": "Lift Maracua 1l", "kcal": 90.0, "orig_idx": 133}, {"name": "Zitronensprudel 0,7l", "kcal": 56.0, "orig_idx": 134}, {"name": "Apfelsaft 100 ml", "kcal": 44.0, "orig_idx": 135}];
+        const adultsData = [{"name": "Scheibe Eiweisbrot", "kcal": 120.0, "orig_idx": 0}, {"name": "Toastbrot Scheibe kl", "kcal": 67.0, "orig_idx": 1}, {"name": "Toast Scheibe gr", "kcal": 100.0, "orig_idx": 2}, {"name": "Scheibe Brot", "kcal": 135.0, "orig_idx": 3}, {"name": "Dinkelbursche Scheibe", "kcal": 118.0, "orig_idx": 4}, {"name": "Zucker Stick 5g", "kcal": 20.0, "orig_idx": 5}, {"name": "Butter 5 g", "kcal": 36.0, "orig_idx": 6}, {"name": "Frischkäse Balance 5g", "kcal": 10.0, "orig_idx": 7}, {"name": "Margarine 5g", "kcal": 17.5, "orig_idx": 8}, {"name": "Knorr TexMex 15 ml", "kcal": 10.0, "orig_idx": 9}, {"name": "Meerrettich 10g", "kcal": 16.0, "orig_idx": 10}, {"name": "Magerquark 10g", "kcal": 7.0, "orig_idx": 11}, {"name": "Scheibe Käse", "kcal": 125.0, "orig_idx": 12}, {"name": "Skyr 100g", "kcal": 62.0, "orig_idx": 13}, {"name": "Fettarm -30% Käse Schb.", "kcal": 93.0, "orig_idx": 14}, {"name": "Burlander Milram", "kcal": 87.0, "orig_idx": 15}, {"name": "Ein Ei", "kcal": 90.0, "orig_idx": 16}, {"name": "Joghurt 1,5% 250g", "kcal": 153.0, "orig_idx": 17}, {"name": "Tomate", "kcal": 22.0, "orig_idx": 18}, {"name": "Paprika mittel", "kcal": 30.0, "orig_idx": 19}, {"name": "Salatgurke 1", "kcal": 50.0, "orig_idx": 20}, {"name": "Möhre", "kcal": 31.0, "orig_idx": 21}, {"name": "Apfel mittel-groß", "kcal": 80.0, "orig_idx": 22}, {"name": "Birne mittel-große", "kcal": 59.0, "orig_idx": 23}, {"name": "Kiwibeeren 100g", "kcal": 55.0, "orig_idx": 24}, {"name": "Mandarine", "kcal": 35.0, "orig_idx": 25}, {"name": "Orange", "kcal": 68.0, "orig_idx": 26}, {"name": "Süßkirsche 1 Stk", "kcal": 5.5, "orig_idx": 27}, {"name": "Zwetschge 1Stk.", "kcal": 14.0, "orig_idx": 28}, {"name": "Stachelbeeren 500g", "kcal": 200.0, "orig_idx": 29}, {"name": "Trauben 100g", "kcal": 70.0, "orig_idx": 30}, {"name": "Feige getrocknet 1 Stk", "kcal": 50.0, "orig_idx": 31}, {"name": "Kiwi Stk", "kcal": 49.0, "orig_idx": 32}, {"name": "Pfirsich", "kcal": 30.0, "orig_idx": 33}, {"name": "Banane", "kcal": 105.0, "orig_idx": 34}, {"name": "Müsli mit Banane", "kcal": 390.0, "orig_idx": 35}, {"name": "Müsli m. Banane u. Flakes", "kcal": 560.0, "orig_idx": 36}, {"name": "Toastfrühst. Pute&Honig", "kcal": 235.0, "orig_idx": 37}, {"name": "Brötchen Ei Frühstück", "kcal": 430.0, "orig_idx": 38}, {"name": "Scheibe Schinken", "kcal": 22.0, "orig_idx": 39}, {"name": "große Scheibe Schinken", "kcal": 32.0, "orig_idx": 40}, {"name": "Schinken in Aspik", "kcal": 16.0, "orig_idx": 41}, {"name": "Putenbrust Scheibe", "kcal": 21.0, "orig_idx": 42}, {"name": "Dulano Cabanossi", "kcal": 55.0, "orig_idx": 43}, {"name": "Schwazw. Schinken", "kcal": 22.0, "orig_idx": 44}, {"name": "Scheibe Wurst (5 kl. Gefl Salami)", "kcal": 50.0, "orig_idx": 45}, {"name": "Scheibe Lyoner", "kcal": 33.3, "orig_idx": 46}, {"name": "Wassereis", "kcal": 22.0, "orig_idx": 47}, {"name": "Capri", "kcal": 54.0, "orig_idx": 48}, {"name": "Split", "kcal": 96.0, "orig_idx": 49}, {"name": "Nuit Macadamia", "kcal": 245.0, "orig_idx": 50}, {"name": "NukkiNuss Xtreme", "kcal": 235.0, "orig_idx": 51}, {"name": "Snickers Eis weiß", "kcal": 213.0, "orig_idx": 52}, {"name": "Dracula Eis", "kcal": 62.0, "orig_idx": 53}, {"name": "Plombir Maxi", "kcal": 163.0, "orig_idx": 54}, {"name": "ProteinRiegel 45g", "kcal": 145.0, "orig_idx": 55}, {"name": "Schoko Chili  25g", "kcal": 138.0, "orig_idx": 56}, {"name": "Stück Toblerone", "kcal": 44.0, "orig_idx": 57}, {"name": "Rippchen Schokolade", "kcal": 91.0, "orig_idx": 58}, {"name": "Neo Giant Kekse", "kcal": 107.0, "orig_idx": 59}, {"name": "Zootiere 20g", "kcal": 84.0, "orig_idx": 60}, {"name": "Lindt Chili Stk", "kcal": 55.0, "orig_idx": 61}, {"name": "Lindor 37g", "kcal": 228.0, "orig_idx": 62}, {"name": "Merci", "kcal": 75.0, "orig_idx": 63}, {"name": "Snickers Proteine", "kcal": 192.0, "orig_idx": 64}, {"name": "Em eukal Vitamin Shot", "kcal": 11.0, "orig_idx": 65}, {"name": "Kräuterbonbon", "kcal": 8.0, "orig_idx": 66}, {"name": "Erdnüsse 100g", "kcal": 600.0, "orig_idx": 67}, {"name": "Erdnüsse Kl Schale", "kcal": 418.0, "orig_idx": 68}, {"name": "Erdnüsse 2 Kerne", "kcal": 12.0, "orig_idx": 69}, {"name": "Walnuss 1 Stk", "kcal": 35.0, "orig_idx": 70}, {"name": "Bierstängel 1Stk", "kcal": 52.0, "orig_idx": 71}, {"name": "Brezelstängel", "kcal": 56.0, "orig_idx": 72}, {"name": "Salzbrezeln 1/2 Tüte", "kcal": 496.25, "orig_idx": 73}, {"name": "Salzbrezeln 13St. 30g", "kcal": 119.1, "orig_idx": 74}, {"name": "Zwei Huober Brezeln", "kcal": 156.0, "orig_idx": 75}, {"name": "Prinzess Brezeln", "kcal": 40.0, "orig_idx": 76}, {"name": "Salzstangen je Stange", "kcal": 3.82, "orig_idx": 77}, {"name": "Traubenzucker Dextro", "kcal": 21.0, "orig_idx": 78}, {"name": "Trauben 166g", "kcal": 114.0, "orig_idx": 79}, {"name": "Erdbeerkuchen Stück", "kcal": 269.0, "orig_idx": 80}, {"name": "WW Muffins", "kcal": 200.0, "orig_idx": 81}, {"name": "Marmelade Teelöffel", "kcal": 31.0, "orig_idx": 82}, {"name": "Honig Teelöffel 7g", "kcal": 21.0, "orig_idx": 83}, {"name": "Tasse Tee", "kcal": 4.0, "orig_idx": 84}, {"name": "Nutella 15g", "kcal": 80.85, "orig_idx": 85}, {"name": "Brötchen 60g", "kcal": 165.0, "orig_idx": 86}, {"name": "Rosenbrötchen 70g", "kcal": 182.0, "orig_idx": 87}, {"name": "Hefezopf 100g (Stk. 70g)", "kcal": 339.0, "orig_idx": 88}, {"name": "Brezel 70g", "kcal": 266.0, "orig_idx": 89}, {"name": "Laugenstange", "kcal": 213.0, "orig_idx": 90}, {"name": "Sesamkringel", "kcal": 427.2, "orig_idx": 91}, {"name": "Butterbrezel", "kcal": 350.0, "orig_idx": 92}, {"name": "Geflügeloberländer", "kcal": 232.0, "orig_idx": 93}, {"name": "Rote Wurst", "kcal": 310.0, "orig_idx": 94}, {"name": "Lachs Steak 125g", "kcal": 283.0, "orig_idx": 95}, {"name": "Rindersteak 100g", "kcal": 225.0, "orig_idx": 96}, {"name": "Roulade", "kcal": 325.0, "orig_idx": 97}, {"name": "Steak 165g", "kcal": 389.0, "orig_idx": 98}, {"name": "Hähnchenspieß 1 Spieß", "kcal": 181.0, "orig_idx": 99}, {"name": "Hähnchenspieß klein", "kcal": 57.0, "orig_idx": 100}, {"name": "Putensteak100 g  unmari", "kcal": 110.0, "orig_idx": 101}, {"name": "Hähnchen Mini Steak", "kcal": 107.0, "orig_idx": 102}, {"name": "Hähnchen Steak Mariniert", "kcal": 271.0, "orig_idx": 103}, {"name": "Reis gekocht 250 ml", "kcal": 325.0, "orig_idx": 104}, {"name": "Gemüsepfanne 100 g", "kcal": 33.0, "orig_idx": 105}, {"name": "Hühnerbrühe 1 Teller", "kcal": 325.0, "orig_idx": 106}, {"name": "Kartoffel 100g", "kcal": 75.0, "orig_idx": 107}, {"name": "Reisgekocht 100g", "kcal": 125.0, "orig_idx": 108}, {"name": "Spargel 100g", "kcal": 16.0, "orig_idx": 109}, {"name": "Leberkäse 100g", "kcal": 280.0, "orig_idx": 110}, {"name": "Rosenkohl Stk", "kcal": 7.0, "orig_idx": 111}, {"name": "Zwiebelkuchen 100g", "kcal": 195.0, "orig_idx": 112}, {"name": "Gulasch 1 Teller", "kcal": 400.0, "orig_idx": 113}, {"name": "Chili Con Carne 1Teller", "kcal": 375.0, "orig_idx": 114}, {"name": "Spätzle 100g", "kcal": 145.0, "orig_idx": 115}, {"name": "Spinat Rahm 100 g", "kcal": 41.0, "orig_idx": 116}, {"name": "Knödl 1 Stk", "kcal": 160.0, "orig_idx": 117}, {"name": "Hähnchen, Kartoffel, Pilze", "kcal": 650.0, "orig_idx": 118}, {"name": "Scholle mit Kartoffeln", "kcal": 800.0, "orig_idx": 119}, {"name": "Pizza Diavolo 26 cm", "kcal": 840.0, "orig_idx": 120}, {"name": "Teller Kürbissuppe", "kcal": 200.0, "orig_idx": 121}, {"name": "Hackbraten 100g", "kcal": 225.0, "orig_idx": 122}, {"name": "Pommes 100g", "kcal": 320.0, "orig_idx": 123}, {"name": "Spätzle 100g", "kcal": 166.0, "orig_idx": 124}, {"name": "Tartar Hackbraten 100g", "kcal": 180.0, "orig_idx": 125}, {"name": "Putenfleisch 100g", "kcal": 105.0, "orig_idx": 126}, {"name": "Maultaschen Bürger 2x", "kcal": 252.0, "orig_idx": 127}, {"name": "CH Wurstsalat 200g", "kcal": 358.0, "orig_idx": 128}, {"name": "Cappuccino", "kcal": 150.0, "orig_idx": 129}, {"name": "Zucker 5g 1 TL", "kcal": 20.0, "orig_idx": 130}, {"name": "Eis eine Kugel", "kcal": 160.0, "orig_idx": 131}, {"name": "Fanta Zero 1l", "kcal": 30.0, "orig_idx": 132}, {"name": "Lift Maracua 1l", "kcal": 90.0, "orig_idx": 133}, {"name": "Zitronensprudel 0,7l", "kcal": 56.0, "orig_idx": 134}, {"name": "Apfelsaft 100 ml", "kcal": 44.0, "orig_idx": 135}, {"name": "Wein Rot/W 250ml", "kcal": 208.0, "orig_idx": 136}, {"name": "Schnaps 2 cl", "kcal": 45.0, "orig_idx": 137}, {"name": "Oettinger Leicht 0,5l", "kcal": 130.0, "orig_idx": 138}, {"name": "Bier Light 0,5 l", "kcal": 145.0, "orig_idx": 139}, {"name": "Bier 0,33 l", "kcal": 145.0, "orig_idx": 140}, {"name": "Bier 0,5 l", "kcal": 220.0, "orig_idx": 141}];
+
+        const categories = [
+            {"id": "c1", "name": "Butter, Brot & Milch 🍞", "color": "#FFFFFF", "text_kids": "#2C3E50", "bg_adults": "#253346", "text_adults": "#FFFFFF", "min": 0, "max": 17},
+            {"id": "c2", "name": "Obst & Gemüse 🥦🍏", "color": "#E3F2FD", "text_kids": "#0D47A1", "bg_adults": "#1B3A57", "text_adults": "#E3F2FD", "min": 18, "max": 34},
+            {"id": "c3", "name": "Frühstück 🥣", "color": "#FFF9C4", "text_kids": "#F57F17", "bg_adults": "#5D5326", "text_adults": "#FFF9C4", "min": 35, "max": 38},
+            {"id": "c4", "name": "Wurst 🍖", "color": "#E8F5E9", "text_kids": "#1B5E20", "bg_adults": "#1E4620", "text_adults": "#E8F5E9", "min": 39, "max": 46},
+            {"id": "c5", "name": "Snacks 🍫🍿", "color": "#FFEBEE", "text_kids": "#B71C1C", "bg_adults": "#5C2626", "text_adults": "#FFEBEE", "min": 47, "max": 79},
+            {"id": "c6", "name": "Kuchen & Gebäck 🍰🥨", "color": "#FFF3E0", "text_kids": "#E65100", "bg_adults": "#5C3E26", "text_adults": "#FFF3E0", "min": 80, "max": 92},
+            {"id": "c7", "name": "Hauptmahlzeiten 🥩🍝", "color": "#FFFDE7", "text_kids": "#F57F17", "bg_adults": "#4E4E26", "text_adults": "#FFFDE7", "min": 93, "max": 128},
+            {"id": "c8", "name": "Getränke ☕🥤", "color": "#E8F5E9", "text_kids": "#1B5E20", "bg_adults": "#1E4620", "text_adults": "#E8F5E9", "min": 129, "max": 200}
+        ];
+
+        // DATEN AUS DEM LOKALEN SPEICHER LADEN (GEDÄCHTNIS)
+        let savedCounts = localStorage.getItem('nutrition_counts');
+        let counts = savedCounts ? JSON.parse(savedCounts) : { kids: {}, adults: {} };
+
+        let currentMode = 'kids';
+        let openAccordions = {"kids": {}, "adults": {}};
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.body.className = mode === 'kids' ? 'mode-kids' : 'mode-adults';
+            
+            const tabKids = document.getElementById('tabKids');
+            const tabAdults = document.getElementById('tabAdults');
+            const subTitle = document.getElementById('subTitle');
+
+            if (mode === 'kids') {
+                tabKids.classList.add('active');
+                tabAdults.classList.remove('active');
+                subTitle.innerText = "Healthy Food & Snacks für Kids 🍉";
+            } else {
+                tabKids.classList.remove('active');
+                tabAdults.classList.add('active');
+                subTitle.innerText = "Fit & Healthy Concept für Erwachsene 🥗🔥";
+            }
+            
+            document.getElementById('searchBar').value = '';
+            renderItems();
+            updateTotal();
+        }
+
+        function toggleAccordion(catId) {
+            openAccordions[currentMode][catId] = !openAccordions[currentMode][catId];
+            const el = document.getElementById('item-' + catId);
+            if (el) {
+                el.classList.toggle('open');
+            }
+        }
+
+        function changeVal(index, amount) {
+            if (!counts[currentMode]) counts[currentMode] = {};
+            let currentVal = counts[currentMode][index] || 0;
+            currentVal += amount;
+            if (currentVal < 0) currentVal = 0;
+            
+            counts[currentMode][index] = currentVal;
+            
+            const displayEl = document.getElementById('val-' + index);
+            if (displayEl) {
+                displayEl.innerText = currentVal === 0 ? "0" : currentVal.toString().replace('.', ',');
+                if (currentVal > 0) {
+                    displayEl.classList.add('has-value');
+                } else {
+                    displayEl.classList.remove('has-value');
+                }
+            }
+            
+            updateTotal();
+            // AUTOMATISCH SPEICHERN
+            localStorage.setItem('nutrition_counts', JSON.stringify(counts));
+        }
+
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            const query = document.getElementById('searchBar').value.toLowerCase();
+            container.innerHTML = '';
+
+            const activeDataset = currentMode === 'kids' ? kidsData : adultsData;
+            if (!counts[currentMode]) counts[currentMode] = {};
+
+            if (query.length > 0) {
+                let filtered = activeDataset.map((item, idx) => {
+                    return { name: item.name, kcal: item.kcal, originalIndex: idx };
+                }).filter(item => item.name.toLowerCase().includes(query));
+
+                if (filtered.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.6;">Keine Einträge gefunden.</div>';
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    const idx = item.originalIndex;
+                    const val = counts[currentMode][idx] || 0;
+                    const card = document.createElement('div');
+                    card.className = 'menu-item';
+                    
+                    let valStr = val === 0 ? "0" : val.toString().replace('.', ',');
+                    let hasValueClass = val > 0 ? 'has-value' : '';
+                    
+                    card.innerHTML = '<div class="item-info">' +
+                                     '<h3>' + item.name + '</h3>' +
+                                     '<p>' + item.kcal + ' kcal / Einheit</p>' +
+                                     '</div>' +
+                                     '<div class="counter-actions">' +
+                                     '<button class="btn-calc btn-minus" onclick="changeVal(' + idx + ', -0.5)">-</button>' +
+                                     '<span class="val-display ' + hasValueClass + '" id="val-' + idx + '">' + valStr + '</span>' +
+                                     '<button class="btn-calc btn-plus" onclick="changeVal(' + idx + ', 1)">+</button>' +
+                                     '</div>';
+                    container.appendChild(card);
+                });
+                return;
+            }
+
+            categories.forEach(cat => {
+                const catItems = activeDataset.map((item, idx) => ({ ...item, originalIndex: idx }))
+                                             .filter(item => item.orig_idx >= cat.min && item.orig_idx <= cat.max);
+                
+                if (catItems.length === 0) return;
+
+                const accItem = document.createElement('div');
+                accItem.className = 'accordion-item';
+                accItem.id = 'item-' + cat.id;
+                if (openAccordions[currentMode][cat.id]) {
+                    accItem.classList.add('open');
+                }
+
+                const header = document.createElement('div');
+                header.className = 'accordion-header';
+                
+                if (currentMode === 'kids') {
+                    header.style.backgroundColor = cat.color;
+                    header.style.color = cat.text_kids;
+                } else {
+                    header.style.backgroundColor = cat.bg_adults;
+                    header.style.color = cat.text_adults;
+                }
+                
+                header.onclick = () => toggleAccordion(cat.id);
+                header.innerHTML = '<span>' + cat.name + '</span><span class="arrow-icon"></span>';
+
+                const content = document.createElement('div');
+                content.className = 'accordion-content';
+
+                catItems.forEach(item => {
+                    const idx = item.originalIndex;
+                    const val = counts[currentMode][idx] || 0;
+                    const card = document.createElement('div');
+                    card.className = 'menu-item';
+                    
+                    let valStr = val === 0 ? "0" : val.toString().replace('.', ',');
+                    let hasValueClass = val > 0 ? 'has-value' : '';
+                    
+                    card.innerHTML = '<div class="item-info">' +
+                                     '<h3>' + item.name + '</h3>' +
+                                     '<p>' + item.kcal + ' kcal / Einheit</p>' +
+                                     '</div>' +
+                                     '<div class="counter-actions">' +
+                                     '<button class="btn-calc btn-minus" onclick="changeVal(' + idx + ', -0.5)">-</button>' +
+                                     '<span class="val-display ' + hasValueClass + '" id="val-' + idx + '">' + valStr + '</span>' +
+                                     '<button class="btn-calc btn-plus" onclick="changeVal(' + idx + ', 1)">+</button>' +
+                                     '</div>';
+                    content.appendChild(card);
+                });
+
+                accItem.appendChild(header);
+                accItem.appendChild(content);
+                container.appendChild(accItem);
+            });
+        }
+
+        function updateTotal() {
+            const activeDataset = currentMode === 'kids' ? kidsData : adultsData;
+            let total = 0;
+            
+            if (!counts[currentMode]) counts[currentMode] = {};
+
+            activeDataset.forEach((item, idx) => {
+                const qty = counts[currentMode][idx] || 0;
+                total += qty * item.kcal;
+            });
+
+            total = Math.round(total * 10) / 10;
+            document.getElementById('totalKcal').innerText = total.toString().replace('.', ',') + ' kcal';
+            
+            const startBudget = currentMode === 'kids' ? 1800 : 2060;
+            let remaining = startBudget - total;
+            remaining = Math.round(remaining * 10) / 10;
+            
+            const remainingEl = document.getElementById('remainingKcal');
+            remainingEl.innerText = remaining.toString().replace('.', ',') + ' kcal';
+            
+            if (remaining <= 500) {
+                remainingEl.classList.add('danger');
+            } else {
+                remainingEl.classList.remove('danger');
+            }
+        }
+
+        function resetAll() {
+            if (confirm("Möchtest du alle eingetragenen Werte für den heutigen Tag wirklich zurücksetzen?")) {
+                counts[currentMode] = {};
+                // SPEICHER NACH RESET AKTUALISIEREN
+                localStorage.setItem('nutrition_counts', JSON.stringify(counts));
+                renderItems();
+                updateTotal();
+            }
+        }
+
+        setMode('kids');
+    </script>
+</body>
+</html>
